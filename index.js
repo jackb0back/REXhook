@@ -13,6 +13,7 @@ const cors = require('cors'); // Import the cors package
 const PORT = 3005;
 const SHA256 = require("crypto-js/sha256");
 const { Socket } = require("socket.io");
+const server = http.createServer(app);
 const io = require('socket.io')(server, {
     cors: {
       origin: "*",
@@ -37,23 +38,34 @@ const verifyToken = (socket, next) => {
     }
   };
 const connect = (socket, next) => {
-
+    console.log("test")
+    users[socket.handshake.address] = {
+        "sock": socket,
+        "peer": socket.handshake.auth.peer
+    };
+    next();
 };
 admin.use(verifyToken);
-hook.use(connect);
+// hook.use(connect);
 var users = {};
 
 
 app.use(cors()); // Use the cors middleware
 app.use(express.static(path.join(__dirname, 'dist')));
 
+app.get('/client', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'client.html'));
+});
+
+
+
 
 hook.on('connection', (socket) => {
     socket.emit("message","connected");
-    users[socket.handshake.address] = {
-        "sock": socket,
-        "peer": ""
-    };
+    // users[socket.handshake.address] = {
+    //     "sock": socket,
+    //     "peer": socket.handshake.peer
+    // };
     
     hook.on('disconnect', () => {
         console.log(socket.handshake.address + " disconnected")
@@ -74,4 +86,11 @@ admin.on('connection', (socket) => {
         console.log("Admin disconnected");
         admin_conn = null;
     });
+});
+
+
+
+
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
