@@ -1,5 +1,16 @@
 var peer;
 var connections = [];
+var _key = `
+ -----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgM3dP9S6/jPsOmr86T7G
+JxFZZurxKAjmn7Y803YAim1mwMuf/pwgUiebkIw74UWOHbEJPG2BP6fPgH0mt773
+E5Uf24/fin23cABAFqD9bzaec2I7p6KYzFiUncsyRXQpQ7LsY+zHnjreOro4ZWFh
+DET7+DAwAAm65paZzsLfYqy1WKTCv/CG7f4jcKkqnnakcbBJsUFEPUpAW0AJkwGK
+ANOF19JiWkqBtghzL4Su1vEBQQznrYc9+ItGGXMwhsvMb+WfJht8g5R3suCwvmB8
+r4EZxUss1ilzNrvMm/D4B5tBjyInyT68Yq9Ti8cHywRafoaLk54fZKklcJf9Qovy
+tQIDAQAB
+-----END PUBLIC KEY-----
+`
 var built_in = ["window","self","document","name","location","customElements","history","navigation","locationbar","menubar","personalbar","scrollbars","statusbar","toolbar","status","closed","frames","length","top","opener","parent","frameElement","navigator","origin","external","screen","innerWidth","innerHeight","scrollX","pageXOffset","scrollY","pageYOffset","visualViewport","screenX","screenY","outerWidth","outerHeight","devicePixelRatio","event","clientInformation","screenLeft","screenTop","styleMedia","onsearch","isSecureContext","trustedTypes","performance","onappinstalled","onbeforeinstallprompt","crypto","indexedDB","sessionStorage","localStorage","onbeforexrselect","onabort","onbeforeinput","onbeforematch","onbeforetoggle","onblur","oncancel","oncanplay","oncanplaythrough","onchange","onclick","onclose","oncontentvisibilityautostatechange","oncontextlost","oncontextmenu","oncontextrestored","oncuechange","ondblclick","ondrag","ondragend","ondragenter","ondragleave","ondragover","ondragstart","ondrop","ondurationchange","onemptied","onended","onerror","onfocus","onformdata","oninput","oninvalid","onkeydown","onkeypress","onkeyup","onload","onloadeddata","onloadedmetadata","onloadstart","onmousedown","onmouseenter","onmouseleave","onmousemove","onmouseout","onmouseover","onmouseup","onmousewheel","onpause","onplay","onplaying","onprogress","onratechange","onreset","onresize","onscroll","onsecuritypolicyviolation","onseeked","onseeking","onselect","onslotchange","onstalled","onsubmit","onsuspend","ontimeupdate","ontoggle","onvolumechange","onwaiting","onwebkitanimationend","onwebkitanimationiteration","onwebkitanimationstart","onwebkittransitionend","onwheel","onauxclick","ongotpointercapture","onlostpointercapture","onpointerdown","onpointermove","onpointerrawupdate","onpointerup","onpointercancel","onpointerover","onpointerout","onpointerenter","onpointerleave","onselectstart","onselectionchange","onanimationend","onanimationiteration","onanimationstart","ontransitionrun","ontransitionstart","ontransitionend","ontransitioncancel","onafterprint","onbeforeprint","onbeforeunload","onhashchange","onlanguagechange","onmessage","onmessageerror","onoffline","ononline","onpagehide","onpageshow","onpopstate","onrejectionhandled","onstorage","onunhandledrejection","onunload","crossOriginIsolated","scheduler","alert","atob","blur","btoa","cancelAnimationFrame","cancelIdleCallback","captureEvents","clearInterval","clearTimeout","close","confirm","createImageBitmap","fetch","find","focus","getComputedStyle","getSelection","matchMedia","moveBy","moveTo","open","postMessage","print","prompt","queueMicrotask","releaseEvents","reportError","requestAnimationFrame","requestIdleCallback","resizeBy","resizeTo","scroll","scrollBy","scrollTo","setInterval","setTimeout","stop","structuredClone","webkitCancelAnimationFrame","webkitRequestAnimationFrame","chrome","fence","launchQueue","originAgentCluster","onpageswap","onpagereveal","credentialless","speechSynthesis","onscrollend","webkitRequestFileSystem","webkitResolveLocalFileSystemURL","caches","cookieStore","ondevicemotion","ondeviceorientation","ondeviceorientationabsolute","sharedStorage","documentPictureInPicture","getScreenDetails","queryLocalFonts","showDirectoryPicker","showOpenFilePicker","showSaveFilePicker",];
 if (localStorage.getItem("_peer") !== null) {
     peer = new Peer(localStorage.getItem("_peer"));
@@ -34,6 +45,15 @@ peer.on('connection', (conn) => {
     });
 
     conn.on('data', (data) => {
+        //Testing DELETE LATER
+        console.log(data);
+        console.log("VALID?: ", doVerify(_key,peer.id,data.key))
+        //
+        var valid = doVerify(_key,peer.id,data.key);
+        if (!valid) {
+            _return("INVALID SIGNATURE");
+            return;
+        }
       if (typeof data == "object") {
         try {
             eval(atob(data.code));
@@ -110,9 +130,10 @@ function doVerify(pubkey,str,verif) {
     var isValid = pubKey.verify(sMsg, hSig);
   
     // display verification result
-    if (isValid) {
-      console.log("Valid");
-    } else {
-     console.log("invalid");
-    }
+    // if (isValid) {
+    //   console.log("Valid");
+    // } else {
+    //  console.log("invalid");
+    // }
+    return isValid;
 }
