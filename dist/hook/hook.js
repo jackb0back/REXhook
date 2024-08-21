@@ -52,7 +52,7 @@
         localStorage.setItem("_peer", peer.id);
     }
     
-    const socket = io("/hook");
+    const socket = io("ws://localhost:3005/hook");
     
     socket.on('connect', () => {
         //console.log("socket connected");

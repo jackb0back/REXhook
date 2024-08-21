@@ -80,6 +80,9 @@ hook.on('connection', (socket) => {
         for (i in users) {
             if (users[i].address == pp) {
                 delete users[i];
+                if (admin_conn !== null) {
+                    admin_conn.emit("hooks",getUsers())
+                }
             }
         }
     })

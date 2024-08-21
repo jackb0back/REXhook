@@ -58,6 +58,10 @@ function connect(id) {
         // conn.send('Hello!');
     });
 
+    conn.on('close', function() {
+        console.log("Hook disconnected");
+    });
+
     conn.on('error', function(err) {
         console.error('Connection error:', err);
     });
